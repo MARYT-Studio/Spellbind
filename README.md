@@ -19,18 +19,20 @@ those actions specified in Step 4 will be applied to that zombie.
 ______
 ## To-do List
 ### Base Functions
-[] Criteria system
+[ ] Criteria system
 
-[] Action type 1: Applying potion effects
+[ ] Action type 1: Applying potion effects
 
-[] Action type 2: Executing commands
+[ ] Action type 2: Executing commands
 
-[] Action type 3: Modifying attributes
+[ ] Action type 3: Modifying attributes
 
-[] Action type 4: Manipulating NBT data.
+[ ] Action type 4: Manipulating NBT data.
 ### Other Functions
 More action types
 
 More complex criteria
+
+ZenScript or KubeJS support
 ________
 This project is an open-source project under the MIT License.
