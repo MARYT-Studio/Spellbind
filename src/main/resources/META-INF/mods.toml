@@ -11,7 +11,7 @@ loaderVersion="[36,)" #mandatory This is typically bumped every Minecraft versio
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
 license="MIT"
 # A URL to refer people to when problems occur with this mod
-#issueTrackerURL="http://my.issue.tracker/" #optional
+issueTrackerURL="https://github.com/RisingInIris2017/Spellbind-Minecraft-Mod-1.16.5/issues" #optional
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]] #mandatory
 # The modid of the mod
@@ -34,7 +34,8 @@ displayName="Spellbind" #mandatory
 authors="RisingInIris2017" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-Bind custom spells to items you are using
+Proudly Presented by MARYT Studio
+Bind custom spells to items you are using.
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.spellbind]] #optional
