@@ -49,7 +49,7 @@ public class Spellbind {
     }
 
     // Mod main logic
-    private Optional<Object> spell(Finish event) {
+    private void spell(Finish event) {
         if(event.getEntity() instanceof PlayerEntity) { // If a player fires LivingEntityUseItemEvent.Finish
             PlayerEntity player = (PlayerEntity)(event.getEntity());
             Optional<Object> target = checkTheTarget(player, 10.0); // Check if there is an entity spotted
@@ -66,6 +66,5 @@ public class Spellbind {
                 }
             }
         }
-        return null;
     }
 }
