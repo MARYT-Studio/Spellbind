@@ -3,9 +3,7 @@ package world.maryt.spellbind;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileHelper;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+import java.util.Optional;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -16,12 +14,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent.Finish;
-import net.minecraft.util.math.EntityRayTraceResult;
 
-import java.util.Optional;
-import java.util.function.Predicate;
-
-import world.maryt.spellbind.actions.ApplyPotionEffect;
+import static world.maryt.spellbind.actions.ApplyPotionEffect.applyPotionEffect;
+import static world.maryt.spellbind.SpellCheckTarget.checkTheTarget;
 
 @Mod("spellbind")
 public class Spellbind {
@@ -53,39 +48,24 @@ public class Spellbind {
         LOGGER.info("A_______)|/       (_______/(_______/(_______/|/ A___/ A_______/|/    )_)(______/ ".replace('A','\\'));
     }
 
+    // Mod main logic
     private Optional<Object> spell(Finish event) {
         if(event.getEntity() instanceof PlayerEntity) { // If a player fires LivingEntityUseItemEvent.Finish
             PlayerEntity player = (PlayerEntity)(event.getEntity());
             Optional<Object> target = checkTheTarget(player, 10.0); // Check if there is an entity spotted
+            // Data Type Magic
             if(target.isPresent()) {
                 Entity targetEntity = (Entity)(target.get());
                 if(targetEntity instanceof LivingEntity) {
                     LivingEntity targetLivingEntity = (LivingEntity)(targetEntity);
+                    // Real Process logic
                     if(!player.world.isRemote) {
-                        boolean potionSuccess = new ApplyPotionEffect().applyPotionEffect(targetLivingEntity,1,1000,1);
+                        boolean potionSuccess = applyPotionEffect(targetLivingEntity,1,1000,1);
                         player.sendMessage(ITextComponent.getTextComponentOrEmpty(targetEntity.getEntityString() + " is spotted, has applied potion effect: " + potionSuccess), null);
                     }
                 }
             }
         }
         return null;
-    }
-    
-    private Optional<Object> checkTheTarget(PlayerEntity player, double distance) {
-        Vector3d vector3d = player.getEyePosition(1.0F);
-        Vector3d vector3d1 = player.getLook(1.0F).scale(distance);
-        Vector3d vector3d2 = vector3d.add(vector3d1);
-        AxisAlignedBB axisalignedbb = player.getBoundingBox().expand(vector3d1).grow(1.0D);
-        double squareDistance = distance * distance;
-        Predicate<Entity> predicate = (p_217727_0_) -> {
-            return !p_217727_0_.isSpectator() && p_217727_0_.canBeCollidedWith();
-        };
-        EntityRayTraceResult entityraytraceresult = ProjectileHelper.rayTraceEntities(player, vector3d, vector3d2, axisalignedbb, predicate, squareDistance);
-        if (entityraytraceresult == null) {
-            return Optional.empty();
-        }
-        else {
-            return vector3d.squareDistanceTo(entityraytraceresult.getHitVec()) > squareDistance ? Optional.empty() : Optional.of(entityraytraceresult.getEntity());
-        }
     }
 }
