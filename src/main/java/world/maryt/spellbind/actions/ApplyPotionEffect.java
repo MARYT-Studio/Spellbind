@@ -6,11 +6,10 @@ import net.minecraft.potion.*;
 import javax.annotation.Nullable;
 
 public class ApplyPotionEffect {
-    public static boolean applyPotionEffect(LivingEntity target, int potionID, int duration, int amplifier) {
-        if(Effect.get(potionID) == null) {return false;}
-        else {
+    public static void applyPotionEffect(LivingEntity target, int potionID, int duration, int amplifier) {
+        if(Effect.get(potionID) != null) {
             Effect effect = Effect.get(potionID);
-            return target.addPotionEffect(new EffectInstance(effect, duration, amplifier));
+            target.addPotionEffect(new EffectInstance(effect, duration, amplifier));
         }
     }
 }
