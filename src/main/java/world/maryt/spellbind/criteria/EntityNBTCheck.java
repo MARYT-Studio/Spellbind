@@ -4,6 +4,9 @@ import net.minecraft.entity.LivingEntity;
 
 public class EntityNBTCheck {
     public static boolean entityNBTCheck(LivingEntity target, String nbtKey) {
-        return target.serializeNBT().contains(nbtKey) ? true : false;
+        if(!nbtKey.equals("")) {
+            return target.serializeNBT().contains(nbtKey) ? true : false;
+        }
+        return true;
     }
 }

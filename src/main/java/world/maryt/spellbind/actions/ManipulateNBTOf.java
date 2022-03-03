@@ -10,12 +10,10 @@ import org.apache.logging.log4j.Logger;
 public class ManipulateNBTOf {
     private static final Logger LOGGER = LogManager.getLogger();
     public static void manipulateNBTOf(LivingEntity target, String nbtString) {
-        CompoundNBT nbtToAdd = null;
+        CompoundNBT nbtToAdd;
         try {
             nbtToAdd = JsonToNBT.getTagFromJson(nbtString);
-            CompoundNBT targetNBT = target.serializeNBT();
-            targetNBT.merge(nbtToAdd);
-            LOGGER.debug("NBT Merge fired.");
+            target.deserializeNBT(target.serializeNBT().merge(nbtToAdd));
         } catch (CommandSyntaxException e) {
             LOGGER.error("Failed to parse Spell JSON");
             e.printStackTrace();
