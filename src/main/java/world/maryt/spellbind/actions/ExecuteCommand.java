@@ -9,9 +9,12 @@ public class ExecuteCommand {
     public static void executeCommandAt(LivingEntity target, String command) {
         String uuid = target.getUniqueID().toString();
         String parsedCommand = command.replace("#target", uuid);
-        int result = target.getEntityWorld().getServer().getCommandManager().handleCommand(target.getEntityWorld().getServer().getCommandSource(), parsedCommand);
-        if(result != 0) {
-            LOGGER.debug("Command \"/" + parsedCommand + "\" returns " + result);
+        try {
+            target.getEntityWorld().getServer().getCommandManager().handleCommand(target.getEntityWorld().getServer().getCommandSource(), parsedCommand);
+        } catch(NullPointerException e) {
+            LOGGER.error("Failed to execute command: NullPointerException");
+            e.printStackTrace();
+            e.getCause().printStackTrace();
         }
     }
 }

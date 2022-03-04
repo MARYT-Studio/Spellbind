@@ -2,6 +2,7 @@ package world.maryt.spellbind;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.JsonReloadListener;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
+import static world.maryt.spellbind.CreateRuleEntry.createRuleEntry;
 import static world.maryt.spellbind.actions.ApplyPotionEffect.applyPotionEffect;
 import static world.maryt.spellbind.actions.ExecuteCommand.executeCommandAt;
 import static world.maryt.spellbind.actions.ManipulateNBTOf.manipulateNBTOf;
@@ -41,6 +43,16 @@ public class Spellbind {
     public static final String MOD_NAME = "Spellbind";
     private static final Logger LOGGER = LogManager.getLogger();
 
+    // Currently, each rule contains 10 params.
+    // Index 0: item id.
+    // Index 1: distance criterion.
+    // Index 2: entity ID criterion.
+    // Index 3: NBT criterion.
+    // Index 4: action type.
+    // 0-4 are necessary.
+    // Index 5-9: action params.
+    public static final int RULE_PARAM_COUNT = 10;
+
     public Spellbind() {
         final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         final IEventBus forgeBus = MinecraftForge.EVENT_BUS;
@@ -50,7 +62,7 @@ public class Spellbind {
         forgeBus.addListener(this::jsonRulesReader);
     }
 
-    public ArrayList<ArrayList<String>> ALL_CUSTOM_RULES = new ArrayList<>();
+    private static ArrayList<String[]> ALL_CUSTOM_RULES = new ArrayList<>();
 
     private void setup(final FMLCommonSetupEvent event) {
         LOGGER.info("*---*---*---*---*---*---*---*---*");
@@ -76,102 +88,10 @@ public class Spellbind {
             protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
                 objectIn.forEach((resourceLocation, ruleJsonElement) -> {
                     try {
-                        LOGGER.warn("Try is fired");
                         JsonArray allRules = JSONUtils.getJsonObject(ruleJsonElement, "rule").get("rule").getAsJsonArray();
                         for (JsonElement ruleElement : allRules) {
                             JsonObject rule = (JsonObject) ruleElement;
-                            ArrayList<String> ruleEntry = new ArrayList<>();
-                            String itemID, distance, entityType;
-                            if (rule.has("item")
-                                    && rule.has("distance")
-                                    && rule.has("entity")) {
-                                itemID = rule.get("item").getAsString();
-                                distance = rule.get("distance").getAsString();
-                                entityType = rule.get("entity").getAsString();
-
-                                // NBT Key criterion is optional.
-                                String nbtKey = "";
-                                if (rule.has("nbt_to_check")) {
-                                    nbtKey = rule.get("nbt_to_check").getAsString();
-                                }
-
-                                // Form a criterion entry
-                                ruleEntry.add(itemID);
-                                ruleEntry.add(distance);
-                                ruleEntry.add(entityType);
-                                ruleEntry.add(nbtKey);
-                                if (rule.has("actions")) {
-                                    try {
-                                        JsonArray allActions = rule.get("actions").getAsJsonArray();
-                                        for (JsonElement actionElement : allActions) {
-                                            JsonObject action = (JsonObject) actionElement;
-                                            if (action.has("action_type")) {
-                                                String actionType = action.get("action_type").getAsString();
-                                                switch (actionType) {
-                                                    case "potion":
-                                                        if (action.has("potion_id") && action.has("duration") && action.has("amplifier")) {
-                                                            // Form an action entry
-                                                            ruleEntry.add(action.get("potion_id").getAsString());
-                                                            ruleEntry.add(action.get("duration").getAsString());
-                                                            ruleEntry.add(action.get("amplifier").getAsString());
-                                                        } else {
-                                                            LOGGER.error("Invalid potion action");
-                                                            return;
-                                                        }
-                                                        break;
-                                                    case "exec_command":
-                                                        if (action.has("command")) {
-                                                            // Form an action entry
-                                                            ruleEntry.add(action.get("command").getAsString());
-                                                        } else {
-                                                            LOGGER.error("Invalid command execution action");
-                                                            return;
-                                                        }
-                                                        break;
-                                                    case "nbt":
-                                                        if (action.has("nbt_string")) {
-                                                            // Form an action entry
-                                                            ruleEntry.add(action.get("nbt_string").getAsString());
-                                                        } else {
-                                                            LOGGER.error("Invalid NBT manipulation action");
-                                                            return;
-                                                        }
-                                                        break;
-                                                    case "attribute":
-                                                        if (action.has("namespace")
-                                                                && action.has("attribute_id")
-                                                                && action.has("operation")
-                                                                && action.has("amount")
-                                                                && action.has("stackable")) {
-                                                            // Form an action entry
-                                                            ruleEntry.add(action.get("namespace").getAsString());
-                                                            ruleEntry.add(action.get("attribute_id").getAsString());
-                                                            ruleEntry.add(action.get("operation").getAsString());
-                                                            ruleEntry.add(action.get("amount").getAsString());
-                                                            ruleEntry.add(action.get("stackable").getAsString());
-                                                        } else {
-                                                            LOGGER.error("Invalid Attribute modification action");
-                                                            return;
-                                                        }
-                                                        break;
-                                                    default:
-                                                        LOGGER.error("None of action types match.");
-                                                        return;
-                                                }
-                                                LOGGER.warn(ruleEntry.toString());
-                                                ALL_CUSTOM_RULES.add(ruleEntry);
-                                            }
-                                        }
-                                        return;
-                                    } catch (IllegalArgumentException | JsonParseException e) {
-                                        LOGGER.error("Parsing error loading actions. Message: {}", e.getMessage());
-                                        return;
-                                    }
-                                }
-                            } else {
-                                LOGGER.error("Invalid rule");
-                                return;
-                            }
+                            ALL_CUSTOM_RULES.add(createRuleEntry(rule, RULE_PARAM_COUNT));
                         }
                     } catch (IllegalArgumentException | JsonParseException e) {
                         LOGGER.error("Parsing error loading custom rules. Message: {}", e.getMessage());
@@ -191,41 +111,54 @@ public class Spellbind {
     private void spell(Finish event) {
         if(event.getEntity() instanceof PlayerEntity) { // If a player fires LivingEntityUseItemEvent.Finish
             PlayerEntity player = (PlayerEntity)(event.getEntity());
-/*
-            // First Criterion: Item
-            if(itemTypeCheck(event.getItem(), "minecraft:apple")) {
-                // Second Criterion: Distance
-                Optional<Object> target = distanceCheck(player, 10.0); // Check if there is an entity spotted
-                // Data Type Magic
-                if (target.isPresent()) {
-                    Entity targetEntity = (Entity) (target.get());
-                    if (targetEntity instanceof LivingEntity) {
-                        LivingEntity targetLivingEntity = (LivingEntity) (targetEntity);
-                        if (!player.world.isRemote) { // Real Process logic, client side only
-
-                            // From here, should be replaced with JSON-driven logic
-                            // Other criteria
-                            boolean typeCheck = entityTypeCheck(targetLivingEntity, "minecraft:pig");
-                            boolean nbtCheck = entityNBTCheck(targetLivingEntity, "NoAI");
-
-                            if (typeCheck && nbtCheck) { // All criteria are AND logic, will be put in the if-expression belows
-                                applyPotionEffect(targetLivingEntity, 1, 1000, 1);
-                                executeCommandAt(targetLivingEntity, "tp #target Dev");
-                                modifyAttributes(targetLivingEntity, "minecraft","generic.max_health", "multiply_total", 100.0D, false);
-                                manipulateNBTOf(targetLivingEntity, "{testWDNMD: 1b}");
-                                player.sendMessage(ITextComponent.getTextComponentOrEmpty(targetEntity.getEntityString() + " is spotted"), null);
+            for (String[] ruleEntry: ALL_CUSTOM_RULES) {
+                // First Criterion: Item
+                if(itemTypeCheck(event.getItem(), ruleEntry[0])) {
+                    // Second Criterion: Distance
+                    Optional<Object> target = distanceCheck(player, Double.parseDouble(ruleEntry[1]));
+                    // Data Type Magic
+                    if (target.isPresent()) {
+                        Entity targetEntity = (Entity) (target.get());
+                        if (targetEntity instanceof LivingEntity) {
+                            LivingEntity targetLivingEntity = (LivingEntity) (targetEntity);
+                            if(targetLivingEntity.getEntityWorld() != null && !targetLivingEntity.getEntityWorld().isRemote()) {
+                                if (entityTypeCheck(targetLivingEntity, ruleEntry[2]) && entityNBTCheck(targetLivingEntity, ruleEntry[3])) {
+                                    switch (ruleEntry[4]) {
+                                        case "potion":
+                                            try {
+                                                applyPotionEffect(targetLivingEntity, Integer.parseInt(ruleEntry[5]), Integer.parseInt(ruleEntry[6]), Integer.parseInt(ruleEntry[7]));
+                                            } catch (NumberFormatException e) {
+                                                LOGGER.error("Invalid potion effect parameter.");
+                                                e.printStackTrace();
+                                                e.getCause().printStackTrace();
+                                                return;
+                                            }
+                                            break;
+                                        case "exec_command":
+                                            executeCommandAt(targetLivingEntity, ruleEntry[5]);
+                                            break;
+                                        case "nbt":
+                                            manipulateNBTOf(targetLivingEntity, ruleEntry[5]);
+                                            break;
+                                        case "attribute":
+                                            try {
+                                                modifyAttributes(targetLivingEntity, ruleEntry[5], ruleEntry[6], ruleEntry[7], Double.parseDouble(ruleEntry[8]), Boolean.parseBoolean(ruleEntry[9]));
+                                            } catch (NumberFormatException e) {
+                                                LOGGER.error("Invalid attribute parameter.");
+                                                e.printStackTrace();
+                                                e.getCause().printStackTrace();
+                                                return;
+                                            }
+                                            break;
+                                        default:
+                                            LOGGER.error("No action type matches.");
+                                            return;
+                                    }
+                                }
                             }
-                            // To here
                         }
                     }
                 }
-            }
-*/
-            if(ALL_CUSTOM_RULES.isEmpty()) {
-                LOGGER.warn("rule map is empty.");
-            }
-            else {
-                LOGGER.warn(ALL_CUSTOM_RULES.toString());
             }
         }
     }

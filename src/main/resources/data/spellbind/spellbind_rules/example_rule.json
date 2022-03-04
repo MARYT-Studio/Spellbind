@@ -14,11 +14,11 @@
           },
           {
             "action_type": "exec_command",
-            "command": "tp #target Dev"
+            "command": "title @a title {\"text\": \"WDNMD\"}"
           },
           {
             "action_type": "nbt",
-            "nbt_string": "{NoAI: 0b}"
+            "nbt_string": "{NoAI: 1b}"
           },
           {
             "action_type": "attribute",
