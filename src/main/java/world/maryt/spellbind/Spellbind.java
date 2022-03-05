@@ -1,8 +1,6 @@
 package world.maryt.spellbind;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.JsonReloadListener;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -11,16 +9,17 @@ import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent.Finish;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import net.minecraftforge.fml.config.ModConfig;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -50,7 +49,7 @@ public class Spellbind {
     // Index 3: NBT criterion.
     // Index 4: action type.
     // 0-4 are necessary.
-    // Index 5-9: action params.
+    // Index 5-9: action params. Params unused will stay null.
     public static final int RULE_PARAM_COUNT = 10;
 
     public Spellbind() {
@@ -60,9 +59,11 @@ public class Spellbind {
         modBus.addListener(this::setup);
         forgeBus.addListener(this::spell);
         forgeBus.addListener(this::jsonRulesReader);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SpellbindConfig.CONFIG);
     }
 
-    private static ArrayList<String[]> ALL_CUSTOM_RULES = new ArrayList<>();
+    protected static ArrayList<String[]> ALL_CUSTOM_RULES = new ArrayList<>();
 
     private void setup(final FMLCommonSetupEvent event) {
         LOGGER.info("*---*---*---*---*---*---*---*---*");
@@ -83,15 +84,39 @@ public class Spellbind {
     // Read JSON from datapack, so that modpack makers can set their own "spells".
 
     private void jsonRulesReader (AddReloadListenerEvent event) {
-        event.addListener(new JsonReloadListener((new GsonBuilder()).create(), MOD_ID + "_rules") {
+        event.addListener(new JsonReloadListener((new GsonBuilder()).create(), MOD_ID + "_spells") {
             @Override
             protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
                 objectIn.forEach((resourceLocation, ruleJsonElement) -> {
+                    ALL_CUSTOM_RULES.clear();
                     try {
-                        JsonArray allRules = JSONUtils.getJsonObject(ruleJsonElement, "rule").get("rule").getAsJsonArray();
-                        for (JsonElement ruleElement : allRules) {
-                            JsonObject rule = (JsonObject) ruleElement;
-                            ALL_CUSTOM_RULES.add(createRuleEntry(rule, RULE_PARAM_COUNT));
+                        JsonArray allSpells = JSONUtils.getJsonObject(ruleJsonElement, "spells").get("spells").getAsJsonArray();
+                        for (JsonElement spellElement : allSpells) {
+                            JsonObject spellObject = (JsonObject) spellElement;
+                            createRuleEntry(spellObject, RULE_PARAM_COUNT);
+                        }
+                        LOGGER.info("Rules loading finishes. Now there are " + ALL_CUSTOM_RULES.size() + " rules active.");
+                        if(SpellbindConfig.DEBUG.get()) {
+                            LOGGER.warn("Spellbind debug mode is on.");
+                            LOGGER.warn("All active rules are printed below.");
+                            LOGGER.warn("You will see the same print in debug.log");
+                            LOGGER.debug("Spellbind debug mode is on.");
+                            LOGGER.debug("All active rules are printed below.");
+                            LOGGER.debug("You will see the same print in console and latest.log");
+                            int index = 1;
+                            for (String[] rule: ALL_CUSTOM_RULES) {
+                                String ruleEntry = "";
+                                for (String ruleParam: rule) {
+                                    if(ruleParam != null) {
+                                        ruleEntry += ruleParam + ", ";
+                                    }
+                                    else break;
+                                }
+                                ruleEntry = "Rule " + index + ": " + ruleEntry.substring(0, ruleEntry.length()-2);
+                                LOGGER.warn(ruleEntry);
+                                LOGGER.debug(ruleEntry);
+                                index++;
+                            }
                         }
                     } catch (IllegalArgumentException | JsonParseException e) {
                         LOGGER.error("Parsing error loading custom rules. Message: {}", e.getMessage());
@@ -121,7 +146,7 @@ public class Spellbind {
                         Entity targetEntity = (Entity) (target.get());
                         if (targetEntity instanceof LivingEntity) {
                             LivingEntity targetLivingEntity = (LivingEntity) (targetEntity);
-                            if(targetLivingEntity.getEntityWorld() != null && !targetLivingEntity.getEntityWorld().isRemote()) {
+                            if(!targetLivingEntity.getEntityWorld().isRemote()) {
                                 if (entityTypeCheck(targetLivingEntity, ruleEntry[2]) && entityNBTCheck(targetLivingEntity, ruleEntry[3])) {
                                     switch (ruleEntry[4]) {
                                         case "potion":
