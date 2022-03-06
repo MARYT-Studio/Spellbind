@@ -24,7 +24,7 @@
             "action_type": "attribute",
             "namespace": "minecraft",
             "attribute_id": "generic.max_health",
-            "operation": "multiply_total",
+            "operation": "multiply",
             "amount": "20.0",
             "stackable": "false"
           },
