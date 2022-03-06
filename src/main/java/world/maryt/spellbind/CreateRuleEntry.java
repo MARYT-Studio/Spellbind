@@ -112,6 +112,5 @@ public class CreateRuleEntry {
             }
         }
         LOGGER.info("Loading rules... " + ALL_CUSTOM_RULES.size() + " rules now.");
-        return;
     }
 }

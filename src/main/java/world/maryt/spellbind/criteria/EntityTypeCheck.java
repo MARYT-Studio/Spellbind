@@ -6,10 +6,10 @@ public class EntityTypeCheck {
     public static boolean entityTypeCheck(LivingEntity target, String type) {
         if(!type.equals("#i_dont_care#")) {
             if(target instanceof PlayerEntity) {
-                return type.equals("player");
+                return type.equals("#player#");
             }
             else {
-                return target.getEntityString().equals(type);
+                return target.getEntityString() != null && target.getEntityString().equals(type);
             }
         }
         return true;
