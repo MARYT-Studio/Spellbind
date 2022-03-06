@@ -32,19 +32,17 @@ public class ModifyAttributes {
     }
 
     private static AttributeModifier createModifier(String operation, double amount) {
-        if(operation.equals("multiply_base")) {
-            return new AttributeModifier("Custom Spellbind Multiply-Base Modifier", amount, AttributeModifier.Operation.MULTIPLY_BASE);
-        }
-        else if(operation.equals("multiply_total")) {
-            return new AttributeModifier("Custom Spellbind Multiply-Total Modifier", amount, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        }
-        else if(operation.equals("add")) {
-            return new AttributeModifier("Custom Spellbind Add Modifier", amount, AttributeModifier.Operation.ADDITION);
-        }
-        else {
-            LOGGER.error("Invalid AttributeModifier operation type.");
-            LOGGER.error("Valid operation types: multiply_base, multiply_total, add.");
-            return null;
+        switch (operation) {
+            case "multiply_base":
+                return new AttributeModifier("Custom Spellbind Multiply-Base Modifier", amount, AttributeModifier.Operation.MULTIPLY_BASE);
+            case "multiply":
+                return new AttributeModifier("Custom Spellbind Multiply-Total Modifier", amount, AttributeModifier.Operation.MULTIPLY_TOTAL);
+            case "add":
+                return new AttributeModifier("Custom Spellbind Add Modifier", amount, AttributeModifier.Operation.ADDITION);
+            default:
+                LOGGER.error("Invalid AttributeModifier operation type.");
+                LOGGER.error("Valid operation types: multiply_base, multiply, add.");
+                return null;
         }
     }
 
