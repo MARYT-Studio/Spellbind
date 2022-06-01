@@ -99,6 +99,19 @@ public class CreateRuleEntry {
                                         ALL_CUSTOM_RULES.add(ruleEntry);
                                     }
                                     break;
+                                case "set_on_fire":
+                                    if (action.has("seconds")) {
+                                        // Form an action entry
+                                        String[] ruleEntry = new String[param_count];
+                                        ruleEntry[0] = itemID;
+                                        ruleEntry[1] = distance;
+                                        ruleEntry[2] = entityType;
+                                        ruleEntry[3] = nbtToCheck;
+                                        ruleEntry[4] = actionType;
+                                        ruleEntry[5] = action.get("seconds").getAsString();
+                                        ALL_CUSTOM_RULES.add(ruleEntry);
+                                    }
+                                    break;
                                 default:
                                     LOGGER.error("None of action types match.");
                                     return;

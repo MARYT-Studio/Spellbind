@@ -26,10 +26,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import static world.maryt.spellbind.CreateRuleEntry.createRuleEntry;
+
 import static world.maryt.spellbind.actions.ApplyPotionEffect.applyPotionEffect;
 import static world.maryt.spellbind.actions.ExecuteCommand.executeCommandAt;
 import static world.maryt.spellbind.actions.ManipulateNBTOf.manipulateNBTOf;
 import static world.maryt.spellbind.actions.ModifyAttributes.modifyAttributes;
+import static world.maryt.spellbind.actions.SetOnFire.setOnFire;
+
 import static world.maryt.spellbind.criteria.DistanceCheck.distanceCheck;
 import static world.maryt.spellbind.criteria.EntityNBTCheck.entityNBTCheck;
 import static world.maryt.spellbind.criteria.EntityTypeCheck.entityTypeCheck;
@@ -155,7 +158,6 @@ public class Spellbind {
                                             } catch (NumberFormatException e) {
                                                 LOGGER.error("Invalid potion effect parameter.");
                                                 e.printStackTrace();
-                                                e.getCause().printStackTrace();
                                                 return;
                                             }
                                             break;
@@ -171,7 +173,15 @@ public class Spellbind {
                                             } catch (NumberFormatException e) {
                                                 LOGGER.error("Invalid attribute parameter.");
                                                 e.printStackTrace();
-                                                e.getCause().printStackTrace();
+                                                return;
+                                            }
+                                            break;
+                                        case "set_on_fire":
+                                            try {
+                                                setOnFire(targetLivingEntity, Integer.parseInt(ruleEntry[5]));
+                                            } catch (NumberFormatException e) {
+                                                LOGGER.error("Invalid attribute parameter.");
+                                                e.printStackTrace();
                                                 return;
                                             }
                                             break;
