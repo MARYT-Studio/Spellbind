@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import net.minecraftforge.fml.config.ModConfig;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
@@ -73,7 +74,7 @@ public class Spellbind {
         LOGGER.info(MOD_NAME + " Mod by RisingInIris2017");
         LOGGER.info("Proudly Presented by MARYT Studio");
         LOGGER.info("*---*---*---*---*---*---*---*---*");
-        LOGGER.info(" _______  _______  _______  _        _        ______  _________ _        ______  ".replace('A','\\'));
+        LOGGER.info(" _______  _______  _______  _        _        ______  _________ _        ______  ");
         LOGGER.info("(  ____ A(  ____ )(  ____ A( A      ( A      (  ___ A A__   __/( (    /|(  __  A ".replace('A','\\'));
         LOGGER.info("| (    A/| (    )|| (    A/| (      | (      | (   ) )   ) (   |  A  ( || (  A  )".replace('A','\\'));
         LOGGER.info("| (_____ | (____)|| (__    | |      | |      | (__/ /    | |   |   A | || |   ) |".replace('A','\\'));
@@ -89,6 +90,7 @@ public class Spellbind {
     private void jsonRulesReader (AddReloadListenerEvent event) {
         event.addListener(new JsonReloadListener((new GsonBuilder()).create(), MOD_ID + "_spells") {
             @Override
+            @ParametersAreNonnullByDefault
             protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
                 objectIn.forEach((resourceLocation, ruleJsonElement) -> {
                     ALL_CUSTOM_RULES.clear();
@@ -99,7 +101,7 @@ public class Spellbind {
                             createRuleEntry(spellObject, RULE_PARAM_COUNT);
                         }
                         LOGGER.info("Rules loading finishes. Now there are " + ALL_CUSTOM_RULES.size() + " rules active.");
-                        if(SpellbindConfig.DEBUG.get()) {
+                        if(SpellbindConfig.PRINT_ALL_ACTIVE_RULES.get()) {
                             LOGGER.warn("Spellbind debug mode is on.");
                             LOGGER.warn("All active rules are printed below.");
                             LOGGER.warn("You will see the same print in debug.log");

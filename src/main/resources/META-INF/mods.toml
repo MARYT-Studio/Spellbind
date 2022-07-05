@@ -34,7 +34,8 @@ credits="MARYT Studio" #optional
 authors="RisingInIris2017" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-- Proudly Presented by MARYT Studio -
+*- Proudly Presented by MARYT Studio -*
+
 Bind custom spells to items you are using.
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
